@@ -1,0 +1,94 @@
+---
+id: NH-TR-2026-04-14-REDTAIL
+name: "Operation RedTail – Advanced Linux ELF Botnet"
+date: "2026-04-14"
+analyst: "OP-01"
+organization: "Nerd Herd Business Technology Solutions"
+tlp: "AMBER (IoC subset: WHITE)"
+tags:
+  - cryptomining
+  - monero
+  - linux
+  - elf
+  - botnet
+  - anti-debug
+  - persistence
+  - privilege-escalation
+
+mitre_attack:
+  - id: T1059.004
+    tactic: Execution
+    name: Unix Shell Execution (ELF dropper)
+  - id: T1027
+    tactic: Defense Evasion
+    name: Obfuscated Files / LCG PRNG (constant 0x6c078965)
+  - id: T1055
+    tactic: Defense Evasion
+    name: Process Masquerading (nginx)
+  - id: T1622
+    tactic: Defense Evasion
+    name: Debugger Evasion / Double Fork + /proc scan
+  - id: T1057
+    tactic: Discovery
+    name: Process Discovery via /proc scan (GDB, Wireshark, watch)
+  - id: T1543.002
+    tactic: Persistence
+    name: Systemd Service (your-redtail.service)
+  - id: T1548.003
+    tactic: Privilege Escalation
+    name: Sudo / PolicyKit (root access)
+  - id: T1071
+    tactic: Command and Control
+    name: Application Layer Protocol (Stratum TLS :2137)
+  - id: T1496
+    tactic: Impact
+    name: Resource Hijacking (Monero XMRig via private proxy pools)
+
+indicators:
+  domains:
+    - proxies.internetshadow.org
+    - proxies.internetshadow.link
+    - proxies.identities.network
+    - proxies.insanitycpp.cx
+  ports:
+    - 2137/tcp
+  services:
+    - your-redtail.service
+  libraries:
+    - libredtail
+  hashes:
+    sha256: "[REDACTED - TLP:AMBER - contact info@nerdherd.it]"
+
+technical_notes:
+  prng_constant: "0x6c078965"
+  prng_type: "Linear Congruential Generator (LCG)"
+  prng_purpose: "In-memory decryption of C2 pool URLs and operational parameters"
+  c2_protocol: "Stratum over TLS, nicehash mode"
+  process_masquerade: "nginx"
+  memory_forensics: "C2 config extractable via core dump of masked process"
+
+detection_rules:
+  - type: firewall
+    rule: "BLOCK outbound TCP port 2137"
+  - type: systemd
+    rule: "ALERT on new service matching pattern '*redtail*'"
+  - type: process
+    rule: "ALERT nginx binary not in /usr/sbin/nginx or /usr/bin/nginx"
+  - type: dns
+    rule: "BLOCK internetshadow.org, internetshadow.link, identities.network, insanitycpp.cx"
+  - type: filesystem
+    rule: "ALERT process with legitimate name but path in /tmp or /dev/shm"
+
+mitigation:
+  - step: 1
+    action: "Block outbound TCP/2137 at perimeter and host-based firewall"
+  - step: 2
+    action: "systemctl stop your-redtail.service && systemctl disable your-redtail.service && rm <unit-file>"
+  - step: 3
+    action: "Audit /var/log/auth.log for unauthorized privilege escalation"
+  - step: 4
+    action: "Remove masked binaries in /tmp, /dev/shm; verify /usr/bin/nginx integrity via debsums/rpm -V"
+  - step: 5
+    action: "Memory scan for processes with legitimate names but anomalous paths"
+  - step: 6
+    action: "Threat hunt: active connections on TCP/2137, libredtail presence, unauthorized ~/.ssh/authorized_keys entries"

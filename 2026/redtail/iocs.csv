@@ -1,0 +1,9 @@
+type,value,description,confidence,tlp,date_added
+domain,proxies.internetshadow.org,RedTail C2 primary mining proxy,HIGH,WHITE,2026-04-14
+domain,proxies.internetshadow.link,RedTail C2 alternate mining proxy,HIGH,WHITE,2026-04-14
+domain,proxies.identities.network,RedTail C2 secondary mining proxy,HIGH,WHITE,2026-04-14
+domain,proxies.insanitycpp.cx,RedTail C2 backup mining proxy,HIGH,WHITE,2026-04-14
+port,2137,Custom Stratum TCP port for C2 traffic,HIGH,WHITE,2026-04-14
+filename,your-redtail.service,systemd persistence unit,HIGH,WHITE,2026-04-14
+library,libredtail,Custom TLS traffic handler module,HIGH,WHITE,2026-04-14
+hash_sha256,46AB28****[REDACTED-TLP:AMBER]****EEB130A,ELF malware sample,HIGH,AMBER,2026-04-14
